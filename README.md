@@ -210,7 +210,7 @@ The app can also be deployed to:
 
 This project includes a comprehensive automated test suite:
 
-- ✅ **63 tests passing** (100% success rate)
+- ✅ **66 tests passing** (100% success rate)
 - ✅ **Unit Tests**: Core verification logic and utilities
 - ✅ **Component Tests**: React component rendering and behavior  
 - ✅ **Integration Tests**: API routes with mocked dependencies

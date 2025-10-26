@@ -137,6 +137,80 @@ describe('verifyLabel', () => {
       expect(brandCheck.match).toBe(true)
       expect(brandCheck.found).toBe(true)
     })
+
+    it('should match brand name with words in different order', () => {
+      const formData = {
+        brandName: 'Long Road Distillers',
+        productType: 'Vodka',
+        alcoholContent: '40',
+        netContents: '750ml',
+      }
+      const ocrText = `
+        DISTILLERS
+        ORIGINAL VODKA
+        LONG
+        40% ALC. BY VOL.
+        ROAD
+        750 ML
+        GOVERNMENT WARNING
+      `
+
+      const result = verifyLabel(formData, ocrText)
+
+      const brandCheck = result.checks.find((c) => c.field === 'Brand Name')
+      expect(brandCheck.match).toBe(true)
+      expect(brandCheck.found).toBe(true)
+    })
+
+    it('should match brand name with words scattered throughout text', () => {
+      const formData = {
+        brandName: 'Long Road Distillers',
+        productType: 'Vodka',
+        alcoholContent: '40',
+        netContents: '750ml',
+      }
+      const ocrText = `
+        BATCH NO. 123
+        DISTILLERS
+        PREMIUM VODKA
+        CRAFTED IN MICHIGAN
+        LONG
+        HANDCRAFTED
+        ROAD
+        40% ALC. BY VOL.
+        750 ML
+        GOVERNMENT WARNING
+      `
+
+      const result = verifyLabel(formData, ocrText)
+
+      const brandCheck = result.checks.find((c) => c.field === 'Brand Name')
+      expect(brandCheck.match).toBe(true)
+      expect(brandCheck.found).toBe(true)
+    })
+
+    it('should not match if a word is missing', () => {
+      const formData = {
+        brandName: 'Long Road Distillers',
+        productType: 'Vodka',
+        alcoholContent: '40',
+        netContents: '750ml',
+      }
+      const ocrText = `
+        DISTILLERS
+        ORIGINAL VODKA
+        LONG
+        40% ALC. BY VOL.
+        750 ML
+        GOVERNMENT WARNING
+      `
+
+      const result = verifyLabel(formData, ocrText)
+
+      const brandCheck = result.checks.find((c) => c.field === 'Brand Name')
+      expect(brandCheck.match).toBe(false)
+      expect(brandCheck.found).toBe(false)
+    })
   })
 
   describe('Product Type Verification', () => {
