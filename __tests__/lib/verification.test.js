@@ -393,6 +393,56 @@ describe('verifyLabel', () => {
       })
     })
 
+    it('should handle liters with various formats', () => {
+      const testCases = [
+        { input: '1.75L', ocr: '1.75 L ALCOHOLIC BEVERAGES' },
+        { input: '1.75 L', ocr: '1.75 L' },
+        { input: '1.75l', ocr: '1.75L' },
+        { input: '1.75 l', ocr: '1.75 LITERS' },
+      ]
+
+      testCases.forEach(({ input, ocr }) => {
+        const formData = {
+          brandName: 'Test',
+          productType: 'Vodka',
+          alcoholContent: '40',
+          netContents: input,
+        }
+        const ocrText = `TEST VODKA 40% ${ocr} GOVERNMENT WARNING`
+
+        const result = verifyLabel(formData, ocrText)
+        const netContentsCheck = result.checks.find((c) => c.field === 'Net Contents')
+        
+        expect(netContentsCheck.match).toBe(true)
+      })
+    })
+
+    it('should handle fluid ounces with various formats', () => {
+      const testCases = [
+        { input: '0.9oz', ocr: '0.9 FL. OZ.' },
+        { input: '0.9 oz', ocr: '0.9 FL. OZ.' },
+        { input: '0.9 fl oz', ocr: '0.9 FL. OZ.' },
+        { input: '0.9floz', ocr: '0.9 FL OZ' },
+        { input: '12oz', ocr: '12 FLUID OUNCES' },
+        { input: '12 fl oz', ocr: '12 OZ' },
+      ]
+
+      testCases.forEach(({ input, ocr }) => {
+        const formData = {
+          brandName: 'Test',
+          productType: 'Vodka',
+          alcoholContent: '40',
+          netContents: input,
+        }
+        const ocrText = `TEST VODKA 40% ${ocr} GOVERNMENT WARNING`
+
+        const result = verifyLabel(formData, ocrText)
+        const netContentsCheck = result.checks.find((c) => c.field === 'Net Contents')
+        
+        expect(netContentsCheck.match).toBe(true)
+      })
+    })
+
     it('should not check if net contents is not provided', () => {
       const formData = {
         brandName: 'Jack Daniels',
