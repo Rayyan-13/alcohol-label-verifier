@@ -13,6 +13,7 @@ export default function Home() {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -120,6 +121,15 @@ export default function Home() {
     }
 
     setIsProcessing(true);
+    setProgress(0);
+
+    // Simulate progress updates
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 90) return prev; // Stop at 90% until actual completion
+        return prev + Math.random() * 15; // Random increments for realistic feel
+      });
+    }, 300);
 
     try {
       // Prepare form data for upload
@@ -142,11 +152,20 @@ export default function Home() {
         throw new Error(data.error || 'Verification failed');
       }
 
+      // Complete progress
+      clearInterval(progressInterval);
+      setProgress(100);
+      
+      // Small delay to show 100% completion
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       setResults(data.results);
     } catch (err) {
+      clearInterval(progressInterval);
       setError(err.message || 'An error occurred during verification. Please try again.');
     } finally {
       setIsProcessing(false);
+      setProgress(0);
     }
   };
 
@@ -367,23 +386,34 @@ export default function Home() {
                 <button
                   type="submit"
                   disabled={isProcessing}
-                  className={`w-full py-4 px-6 text-white font-semibold rounded-lg shadow-lg transition-all ${
+                  className={`w-full py-4 px-6 text-white font-semibold rounded-lg shadow-lg transition-all relative overflow-hidden ${
                     isProcessing
                       ? 'bg-gray-400 cursor-not-allowed'
                       : 'bg-blue-600 hover:bg-blue-700 hover:shadow-xl'
                   }`}
                 >
-                  {isProcessing ? (
-                    <span className="flex items-center justify-center gap-3">
-                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Processing Image with AI...
-                    </span>
-                  ) : (
-                    'Verify Label Compliance'
+                  {/* Progress Bar Background */}
+                  {isProcessing && (
+                    <div 
+                      className="absolute inset-0 bg-green-500 transition-all duration-300 ease-out"
+                      style={{ width: `${Math.min(progress, 100)}%` }}
+                    />
                   )}
+                  
+                  {/* Button Content */}
+                  <span className="relative z-10">
+                    {isProcessing ? (
+                      <span className="flex items-center justify-center gap-3">
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing Image with AI... {Math.round(progress)}%
+                      </span>
+                    ) : (
+                      'Verify Label Compliance'
+                    )}
+                  </span>
                 </button>
               </div>
             </form>
