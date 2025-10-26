@@ -443,6 +443,32 @@ describe('verifyLabel', () => {
       })
     })
 
+    it('should handle pints with various formats', () => {
+      const testCases = [
+        { input: '1pint', ocr: '1 PINT' },
+        { input: '1 pint', ocr: '1 PINT' },
+        { input: '1pt', ocr: '1 PINT' },
+        { input: '1 pt', ocr: '1 PT' },
+        { input: '1pint', ocr: '1 PT' },
+        { input: '0.5 pint', ocr: '0.5 PINTS' },
+      ]
+
+      testCases.forEach(({ input, ocr }) => {
+        const formData = {
+          brandName: 'Test',
+          productType: 'Beer',
+          alcoholContent: '5',
+          netContents: input,
+        }
+        const ocrText = `TEST BEER 5% ${ocr} GOVERNMENT WARNING`
+
+        const result = verifyLabel(formData, ocrText)
+        const netContentsCheck = result.checks.find((c) => c.field === 'Net Contents')
+        
+        expect(netContentsCheck.match).toBe(true)
+      })
+    })
+
     it('should not check if net contents is not provided', () => {
       const formData = {
         brandName: 'Jack Daniels',
