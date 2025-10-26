@@ -49,6 +49,94 @@ describe('verifyLabel', () => {
       const brandCheck = result.checks.find((c) => c.field === 'Brand Name')
       expect(brandCheck.match).toBe(true)
     })
+
+    it('should match brand name across multiple lines', () => {
+      const formData = {
+        brandName: 'Long Road Distillers',
+        productType: 'Vodka',
+        alcoholContent: '40',
+        netContents: '750ml',
+      }
+      // Simulating multi-line OCR text where brand appears on separate lines
+      const ocrText = `
+        DISTILLED FROM LOCAL GRAIN
+        LONG
+        ROAD
+        DISTILLERS
+        ORIGINAL VODKA
+        40% ALC. BY VOL. 750 ML
+        GOVERNMENT WARNING
+      `
+
+      const result = verifyLabel(formData, ocrText)
+
+      const brandCheck = result.checks.find((c) => c.field === 'Brand Name')
+      expect(brandCheck.match).toBe(true)
+      expect(brandCheck.found).toBe(true)
+    })
+
+    it('should match brand name without spaces (e.g., in URLs)', () => {
+      const formData = {
+        brandName: 'Long Road Distillers',
+        productType: 'Vodka',
+        alcoholContent: '40',
+        netContents: '750ml',
+      }
+      const ocrText = `
+        ORIGINAL VODKA
+        40% ALC. BY VOL.
+        LONGROADDISTILLERS.COM
+        750 ML
+        GOVERNMENT WARNING
+      `
+
+      const result = verifyLabel(formData, ocrText)
+
+      const brandCheck = result.checks.find((c) => c.field === 'Brand Name')
+      expect(brandCheck.match).toBe(true)
+      expect(brandCheck.found).toBe(true)
+    })
+
+    it('should match real Long Road Distillers label', () => {
+      const formData = {
+        brandName: 'Long Road Distillers',
+        productType: 'Vodka',
+        alcoholContent: '40',
+        netContents: '750ml',
+      }
+      const ocrText = `
+        DISTILLED FROM LOCAL GRAIN
+        GRAND RAPIDS MICHIGAN
+        BATCH NO.
+        SMALL BATCH
+        LONG
+        DISTILLERS
+        ROAD
+        LONG
+        GRAND
+        ROAD
+        RAPIDS
+        DISTILLER
+        ORIGINAL VODKA
+        HANDCRAFTED FROM RED WINTER WHEAT
+        40% ALC. BY VOL. | 80 PROOF | 750 ML
+        DISTILLED & BOTTLED BY
+        LONG
+        AD
+        DISTILLERS
+        LONGROADDISTILLERS.COM
+        GOVERNMENT WARNING: (1) ACCORDING TO THE
+        SURGEON GENERAL, WOMEN SHOULD NOT DRINK ALCOHOLIC
+        BEVERAGES DURING PREGNANCY BECAUSE OF THE RISK OF
+        BIRTH DEFECTS.
+      `
+
+      const result = verifyLabel(formData, ocrText)
+
+      const brandCheck = result.checks.find((c) => c.field === 'Brand Name')
+      expect(brandCheck.match).toBe(true)
+      expect(brandCheck.found).toBe(true)
+    })
   })
 
   describe('Product Type Verification', () => {
